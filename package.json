@@ -1,5 +1,5 @@
 {
-  "name": "vueflow-editor",
+  "name": "vueflow-dialogue-editor",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,8 +14,12 @@
     "@vue-flow/core": "^1.40.1",
     "@vue-flow/minimap": "^1.5.0",
     "@vue-flow/node-resizer": "^1.4.0",
+    "@vueup/vue-quill": "^1.2.0",
+    "quill": "^2.0.2",
     "typescript": "^5.5.4",
-    "vue": "^3.4.29"
+    "vue": "^3.4.29",
+    "vue-quill-editor": "^3.0.6",
+    "vue3-quill": "^0.3.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.5",
