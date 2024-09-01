@@ -1,32 +1,48 @@
+/**
+VueFlow Dialogue Editor by NOKORI, 2024
+Uses the following APIs:
+-VueFlow
+-VueQuill
+-Vue3ContextMenu (https://www.npmjs.com/package/@imengyu/vue3-context-menu)
+-UUIDv4
+*/
+
 <script setup>
-import { h, ref, reactive, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref } from 'vue'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { ControlButton, Controls } from '@vue-flow/controls'
 import { initialEdges, initialNodes } from './initial-elements.js'
+
 import { useConfirmDeleteDialog } from './components/DialogConfirmDeleteUse.js'
-
-import ResizableNode from './components/ResizableNode.vue'
-import TextFieldNode from './components/TextFieldNode.vue'
-import TextAreaNode from './components/TextAreaNode.vue'
-import NoteNode from './components/NoteNode.vue'
 import DialogConfirmDelete from './components/DialogConfirmDelete.vue'
-import Icon from './Icon.vue'
 
-const { onInit, onConnect, addEdges,
-  onConnectStart, onConnectEnd,
-  onEdgeUpdateStart, onEdgeUpdateEnd, onEdgeClick, onEdgeDoubleClick,
-  onNodesChange, onEdgesChange, applyNodeChanges, applyEdgeChanges, updateEdge,
+import ResizableNode from './nodes/ResizableNode.vue'
+import TextFieldNode from './nodes/TextFieldNode.vue'
+import TextAreaNode from './nodes/TextAreaNode.vue'
+import NoteNode from './nodes/NoteNode.vue'
+
+import ContextMenu from '@imengyu/vue3-context-menu'
+
+import Icon from './Icon.vue'
+import { v4 as uuidv4 } from 'uuid';
+
+const { onInit, onConnect, screenToFlowCoordinate,
+  onNodesInitialized, updateNode, addNodes, onNodesChange, applyNodeChanges, onNodeContextMenu,  onNodeDoubleClick, removeNodes,
+  addEdges, onEdgeDoubleClick, onEdgesChange, applyEdgeChanges, onEdgeContextMenu, removeEdges,
+  onSelectionContextMenu,
+  onPaneContextMenu,
   toObject, fromObject } = useVueFlow();
 
+//Edge renaming
+const editingEdge = ref(null);
+
+let mouseX = 0;
+let mouseY = 0;
 
 onInit((vueFlowInstance) => {
   vueFlowInstance.fitView();
 });
-
-function logToObject() {
-  console.log(toObject());
-}
 
 onConnect(addEdges)
 
@@ -36,7 +52,6 @@ const confirmDeleteDialog = useConfirmDeleteDialog();
 
 onNodesChange(async (changes) => {
   const nextChanges = []
-
   for (const change of changes) {
     if (change.type === 'remove') {
       //await causes the isConfirmed const to wait on a response from the dialog.confirmDefault function
@@ -76,10 +91,6 @@ onEdgesChange(async (changes) => {
   applyEdgeChanges(nextChanges)
 })
 
-const editingEdge = ref(null);
-let mouseX = 0;
-let mouseY = 0;
-
 onEdgeDoubleClick(({ mouseEvent, edge }) => {
   editingEdge.value = edge;
   mouseX = edge.sourceX;
@@ -93,7 +104,103 @@ const endEdgeEditing = () => {
   }
 }
 
-//Saving/Loading
+/* Context Menus */
+
+onNodeDoubleClick((nodeEvent) => {
+
+  let pointerEvent = nodeEvent.event;
+  let node = nodeEvent.node;
+
+  pointerEvent.preventDefault();
+
+  ContextMenu.showContextMenu({
+    x: pointerEvent.x,
+    y: pointerEvent.y,
+    items: [
+      {
+        label: "Delete Node", onClick: () => { removeNodes(node.id) },
+      },
+    ]
+  })
+
+  //console.log(pointerEvent + " " + node.id);
+
+});
+
+onEdgeContextMenu((edgeEvent) => {
+
+let pointerEvent = edgeEvent.event;
+let edge = edgeEvent.edge;
+
+//pointerEvent.preventDefault();
+
+pointerEvent.preventDefault();
+
+ContextMenu.showContextMenu({
+  x: pointerEvent.x,
+  y: pointerEvent.y,
+  items: [
+    {
+      label: "Delete Connection", onClick: () => { removeEdges(edge.id); },
+    },
+  ]
+})
+
+});
+
+onPaneContextMenu((event) => {
+  event.preventDefault();
+
+  ContextMenu.showContextMenu({
+    x: event.x,
+    y: event.y,
+    items: [
+      {
+        label: "Create New...",
+        children: [
+          { label: "Text Area Node", onClick: () => { createNewNode(event, "text-area"); } },
+          { label: "Text Field Node", onClick: () => { createNewNode(event, "text-field"); } },
+          { label: "Note", onClick: () => { createNewNode(event, "note"); } },
+        ]
+      },
+    ]
+  });
+
+});
+
+onSelectionContextMenu((selectEvent) => {
+  selectEvent.event.preventDefault();
+});
+
+function createNewNode(event, type) {
+
+  const position = screenToFlowCoordinate({
+    x: event.x,
+    y: event.y,
+  })
+
+  const nodeID = uuidv4();
+
+  const newNode = {
+    id: nodeID,
+    type,
+    position,
+    data: { label: "" }
+  };
+
+  const { off } = onNodesInitialized(() => {
+    updateNode(nodeID, (node) => ({
+      position: { x: node.position.x - node.dimensions.width / 2, y: node.position.y - node.dimensions.height / 2 },
+    }))
+
+    off()
+  })
+
+  addNodes(newNode);
+};
+
+/* Saving & Loading Data */
+
 function onSave() {
   const saveData = JSON.stringify(toObject(), null, 2);
 
@@ -125,7 +232,7 @@ async function onLoad() {
     const contents = await file.text();
     const loadedState = JSON.parse(contents);
     fromObject(loadedState);
-    
+
   } catch (error) {
     console.error('Failed to open file:', error);
   }
@@ -172,13 +279,14 @@ async function onLoad() {
         <Icon name="restore" />
       </ControlButton>
 
-      <ControlButton title="Log `toObject`" @click="logToObject">
+      <ControlButton title="Log `toObject`" @click="console.log(toObject());">
         <Icon name="log" />
       </ControlButton>
     </Controls>
 
   </VueFlow>
 
+  <!-- Label Renaming Dialog -->
   <div v-if="editingEdge" class="label-renaming-field">
     <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing"
       @keydown.escape="endEdgeEditing" />
