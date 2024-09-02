@@ -5,8 +5,8 @@
 @import '@vue-flow/core/dist/theme-default.css';
 
 /* import themeing for controls and node-resizing*/
-@import './controls.css';
-@import './node-resizer.css';
+@import './css/controls.css';
+@import './css/node-resizer.css';
 
 #app { 
   width: 100vw;
@@ -29,10 +29,14 @@
   width:100%;
   height:100%;
   padding:10px;
-  background:#FFFFFF;
+  background-color:#ffffff;
   box-sizing: border-box;
   border-radius:0px;
 }
+
+/*.intersecting {
+  background-color:#ec4899;
+}*/
 
 .content-wrapper {
   display: flex;

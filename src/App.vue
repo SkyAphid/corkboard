@@ -8,7 +8,7 @@ Uses the following APIs:
 */
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { ControlButton, Controls } from '@vue-flow/controls'
@@ -20,6 +20,8 @@ import DialogConfirmDelete from './components/DialogConfirmDelete.vue'
 import ResizableNode from './nodes/ResizableNode.vue'
 import TextFieldNode from './nodes/TextFieldNode.vue'
 import TextAreaNode from './nodes/TextAreaNode.vue'
+import ComponentNode from './nodes/ComponentNode.vue'
+import { useComponentUtil } from './nodes/ComponentUtil.js'
 import NoteNode from './nodes/NoteNode.vue'
 
 import ContextMenu from '@imengyu/vue3-context-menu'
@@ -27,12 +29,19 @@ import ContextMenu from '@imengyu/vue3-context-menu'
 import Icon from './Icon.vue'
 import { v4 as uuidv4 } from 'uuid';
 
-const { onInit, onConnect, screenToFlowCoordinate,
-  onNodesInitialized, updateNode, addNodes, onNodesChange, applyNodeChanges, onNodeContextMenu,  onNodeDoubleClick, removeNodes,
+const { onInit, screenToFlowCoordinate,
+  onConnect, onNodesInitialized, onNodeDrag, updateNode, findNode, getNodes,
+  isNodeIntersecting, getIntersectingNodes,
+  addNodes, onNodeDoubleClick, onNodesChange, applyNodeChanges, onNodeContextMenu, removeNodes,
   addEdges, onEdgeDoubleClick, onEdgesChange, applyEdgeChanges, onEdgeContextMenu, removeEdges,
   onSelectionContextMenu,
   onPaneContextMenu,
   toObject, fromObject } = useVueFlow();
+
+//Node intersecting
+const panelEl = ref()
+const isIntersectingWithPanel = ref(false)
+const componentUtil = useComponentUtil();
 
 //Edge renaming
 const editingEdge = ref(null);
@@ -58,6 +67,7 @@ onNodesChange(async (changes) => {
       const isConfirmed = await confirmDeleteDialog.confirmDefault(change.id)
 
       if (isConfirmed) {
+        componentUtil.deleteComponents(getNodes, change.id);
         nextChanges.push(change)
       }
     } else {
@@ -113,14 +123,53 @@ onNodeDoubleClick((nodeEvent) => {
 
   pointerEvent.preventDefault();
 
+  let items = [
+    {
+      label: "Delete Node", onClick: () => { removeNodes(node.id) },
+    },
+  ];
+
+  if (node.type == 'component') {
+    /*items.push({
+      label: "Add Attribute", onClick: () => { componentUtil.addAttribute(node) },
+    });*/
+
+    let attributes = node.data.attributes;
+
+    if (attributes) {
+      for (let i = 0; i < attributes.length; i++) {
+        let attribute = attributes[i] ? attributes[i] : "Attribute " + i;
+
+        items.push({
+          label: "Remove " + attribute, onClick: () => { node.data.attributes.splice(i, 1) }
+        });
+      }
+    }
+
+  }
+
+  let components = node.data.components;
+
+  if (components) {
+    for (let i = 0; i < components.length; i++) {
+      if (!components[i]) {
+        continue;
+      }
+
+      let n = findNode(components[i]);
+
+      let label = n && n.data.label ? n.data.label : components[i];
+
+      items.push({
+        label: "Remove " + label, onClick: () => { node.data.components.splice(i, 1) }
+      });
+    }
+  }
+
   ContextMenu.showContextMenu({
     x: pointerEvent.x,
     y: pointerEvent.y,
-    items: [
-      {
-        label: "Delete Node", onClick: () => { removeNodes(node.id) },
-      },
-    ]
+    items
   })
 
   //console.log(pointerEvent + " " + node.id);
@@ -129,22 +178,22 @@ onNodeDoubleClick((nodeEvent) => {
 
 onEdgeContextMenu((edgeEvent) => {
 
-let pointerEvent = edgeEvent.event;
-let edge = edgeEvent.edge;
+  let pointerEvent = edgeEvent.event;
+  let edge = edgeEvent.edge;
 
-//pointerEvent.preventDefault();
+  //pointerEvent.preventDefault();
 
-pointerEvent.preventDefault();
+  pointerEvent.preventDefault();
 
-ContextMenu.showContextMenu({
-  x: pointerEvent.x,
-  y: pointerEvent.y,
-  items: [
-    {
-      label: "Delete Connection", onClick: () => { removeEdges(edge.id); },
-    },
-  ]
-})
+  ContextMenu.showContextMenu({
+    x: pointerEvent.x,
+    y: pointerEvent.y,
+    items: [
+      {
+        label: "Delete Connection", onClick: () => { removeEdges(edge.id); },
+      },
+    ]
+  })
 
 });
 
@@ -160,6 +209,7 @@ onPaneContextMenu((event) => {
         children: [
           { label: "Text Area Node", onClick: () => { createNewNode(event, "text-area"); } },
           { label: "Text Field Node", onClick: () => { createNewNode(event, "text-field"); } },
+          { label: "Component Node", onClick: () => { createNewNode(event, "component"); } },
           { label: "Note", onClick: () => { createNewNode(event, "note"); } },
         ]
       },
@@ -199,6 +249,50 @@ function createNewNode(event, type) {
   addNodes(newNode);
 };
 
+/* Node Intersecting */
+
+onNodeDrag(({ node: draggedNode }) => {
+  const nodes = getNodes;
+  const intersections = getIntersectingNodes(draggedNode)
+  const intersectionIds = intersections.map((intersection) => intersection.id)
+
+  isIntersectingWithPanel.value = isNodeIntersecting(draggedNode, panelPosition.value)
+
+  for (const node of nodes.value) {
+    const isIntersecting = intersectionIds.includes(node.id)
+
+    if (draggedNode == node) {
+      continue;
+    }
+
+    updateNode(node.id, { class: isIntersecting ? 'intersecting' : '' })
+
+    if (isIntersecting && draggedNode.type == 'component') {
+      componentUtil.connectComponent(node, draggedNode);
+    }
+
+  }
+});
+
+const panelPosition = computed(() => {
+  if (!panelEl.value) {
+    return {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0,
+    }
+  }
+
+  const { left, top, width, height } = panelEl.value.$el.getBoundingClientRect()
+
+  return {
+    ...screenToFlowCoordinate({ x: left, y: top }),
+    width,
+    height,
+  }
+})
+
 /* Saving & Loading Data */
 
 function onSave() {
@@ -217,7 +311,7 @@ function onSave() {
   // Clean up
   URL.revokeObjectURL(url);
 
-}
+};
 
 async function onLoad() {
   try {
@@ -236,7 +330,7 @@ async function onLoad() {
   } catch (error) {
     console.error('Failed to open file:', error);
   }
-}
+};
 
 </script>
 
@@ -258,6 +352,10 @@ async function onLoad() {
 
     <template #node-text-area="textAreaNodeProps">
       <TextAreaNode :id="textAreaNodeProps.id" :data="textAreaNodeProps.data" />
+    </template>
+
+    <template #node-component="componentNodeProps">
+      <ComponentNode :id="componentNodeProps.id" :data="componentNodeProps.data" />
     </template>
 
     <template #node-note="noteNodeProps">

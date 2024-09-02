@@ -10,7 +10,12 @@ export const initialNodes = reactive([
     position: { x: 0, y: 0 },
     // all nodes can have a data object containing any data you want to pass to the node
     // a label can property can be used for default nodes
-    data: { label: 'Node 1', body: "" },
+    data: { 
+      label: 'Node 1', 
+      body: "",
+      components: []
+    },
+
     //style: { background: '#fff', border: '2px solid black' },
   },
 
