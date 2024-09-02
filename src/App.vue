@@ -386,8 +386,7 @@ async function onLoad() {
 
   <!-- Label Renaming Dialog -->
   <div v-if="editingEdge" class="label-renaming-field">
-    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing"
-      @keydown.escape="endEdgeEditing" />
+    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
   </div>
 
 </template>

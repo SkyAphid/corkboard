@@ -138,6 +138,12 @@ input:focus {
   z-index: 1000;
 }
 
+#label-editor {
+  width: 50%; /* Set width of the text field */
+  font-size: 1.25em; /* Increase font size */
+  height: 2em; /* Increase height of the text field */
+}
+
 /* Dialogs */
 
 .dialog-overlay {
