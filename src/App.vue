@@ -1,5 +1,5 @@
 /**
-VueFlow Dialogue Editor by NOKORI, 2024
+Corkboard Dialogue/Node-based Editor by NOKORIWARE, 2024
 Uses the following APIs:
 -VueFlow
 -VueQuill
@@ -30,13 +30,18 @@ import Icon from './Icon.vue'
 import { v4 as uuidv4 } from 'uuid';
 
 const { onInit, screenToFlowCoordinate,
-  onConnect, onNodesInitialized, onNodeDrag, updateNode, findNode, getNodes,
+  onConnect, onNodesInitialized, onNodeDrag, updateNode, findNode,
   isNodeIntersecting, getIntersectingNodes,
   addNodes, onNodeDoubleClick, onNodesChange, applyNodeChanges, onNodeContextMenu, removeNodes,
   addEdges, onEdgeDoubleClick, onEdgesChange, applyEdgeChanges, onEdgeContextMenu, removeEdges,
   onSelectionContextMenu,
   onPaneContextMenu,
-  toObject, fromObject } = useVueFlow();
+  toObject, fromObject,
+  getNodes, getEdges, vueFlowRef, } = useVueFlow();
+
+
+//If enabled, a dialog will ask the user to confirm the deletion of elements
+let confirmDelete = true;
 
 //Node intersecting
 const panelEl = ref()
@@ -59,14 +64,13 @@ onConnect(addEdges)
 const deleteKey = 'Delete';
 const confirmDeleteDialog = useConfirmDeleteDialog();
 
+//Node Deleting
 onNodesChange(async (changes) => {
   const nextChanges = []
   for (const change of changes) {
     if (change.type === 'remove') {
-      //await causes the isConfirmed const to wait on a response from the dialog.confirmDefault function
-      const isConfirmed = await confirmDeleteDialog.confirmDefault(change.id)
 
-      if (isConfirmed) {
+      if (await canDelete(change)) {
         componentUtil.deleteComponents(getNodes, change.id);
         nextChanges.push(change)
       }
@@ -75,10 +79,11 @@ onNodesChange(async (changes) => {
     }
   }
 
+  confirmDelete = true;
   applyNodeChanges(nextChanges)
 })
 
-//Edge Renaming
+//Edge Deleting
 onEdgesChange(async (changes) => {
   const nextChanges = []
 
@@ -88,9 +93,7 @@ onEdgesChange(async (changes) => {
     }
 
     if (change.type === 'remove') {
-      const isConfirmed = await confirmDeleteDialog.confirmDefault(change.id)
-
-      if (isConfirmed) {
+      if (await canDelete(change)) {
         nextChanges.push(change)
       }
     } else {
@@ -98,9 +101,20 @@ onEdgesChange(async (changes) => {
     }
   }
 
+  confirmDelete = true;
   applyEdgeChanges(nextChanges)
 })
 
+async function canDelete(change) {
+  if (confirmDelete) {
+    //await causes the isConfirmed const to wait on a response from the dialog.confirmDefault function
+    return await confirmDeleteDialog.confirmDefault(change.id);
+  }
+
+  return true;
+}
+
+//Edge Renaming
 onEdgeDoubleClick(({ mouseEvent, edge }) => {
   editingEdge.value = edge;
   mouseX = edge.sourceX;
@@ -295,6 +309,18 @@ const panelPosition = computed(() => {
 
 /* Saving & Loading Data */
 
+async function onReset() {
+  const isConfirmed = await confirmDeleteDialog.confirmReset();
+
+  if (isConfirmed) {
+
+    confirmDelete = false;
+    removeNodes(getNodes.value);
+
+  }
+
+}
+
 function onSave() {
   const saveData = JSON.stringify(toObject(), null, 2);
 
@@ -369,24 +395,31 @@ async function onLoad() {
 
     <!-- Toolbar -->
     <Controls position="top-left">
-      <ControlButton title="Save" @click="onSave">
+      
+      <ControlButton title="Reset to New Project" @click="onReset">
+        <Icon name="reset" />
+      </ControlButton>
+
+      <ControlButton title="Save Project" @click="onSave">
         <Icon name="save" />
       </ControlButton>
 
-      <ControlButton title="Load" @click="onLoad">
-        <Icon name="restore" />
+      <ControlButton title="Load Project" @click="onLoad">
+        <Icon name="load" />
       </ControlButton>
 
-      <ControlButton title="Log `toObject`" @click="console.log(toObject());">
+      <ControlButton title="Log `toObject` to Console" @click="console.log(toObject());">
         <Icon name="log" />
       </ControlButton>
+
     </Controls>
 
   </VueFlow>
 
   <!-- Label Renaming Dialog -->
   <div v-if="editingEdge" class="label-renaming-field">
-    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
+    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing"
+      @keydown.escape="endEdgeEditing" />
   </div>
 
 </template>

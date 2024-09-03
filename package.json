@@ -1,7 +1,7 @@
 {
-  "name": "vueflow-dialogue-editor",
-  "version": "0.0.0",
-  "private": true,
+  "name": "corkboard",
+  "version": "1.0.0",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",

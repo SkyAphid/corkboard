@@ -40,7 +40,7 @@ export function useComponentUtil() {
 
         for (const node of nodes.value){
 
-            console.log(node.id);
+            //console.log(node.id);
 
             if (node.id == componentNodeID){
                 continue;

@@ -20,13 +20,6 @@ export function useDialogConfirmDelete() {
   }
 }
 
-export function useConfirmDeleteDialog() {
-  return{
-    confirm,
-    confirmDefault
-  }
-}
-
 function confirm(msg) {
   isVisible.value = true
   message.value = msg
@@ -48,6 +41,29 @@ function confirmDefault(id){
     },
     [`Are you sure?`, h('br'), h('span', `[ELEMENT_ID: ${id}]`)],
   ));
+}
+
+function confirmReset(){
+  return confirm(h(
+    'span',
+    {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
+      },
+    },
+    [`Reset workspace?`, h('br'), `This cannot be undone.`],
+  ));
+}
+
+export function useConfirmDeleteDialog() {
+  return{
+    confirm,
+    confirmDefault,
+    confirmReset
+  }
 }
 
 //Another way
