@@ -2,7 +2,7 @@
 ![logo](https://github.com/user-attachments/assets/31138336-2e47-4429-8041-d200abed0c06)
 
 
-# Branching Dialogue Editor for Video Games & General-use RichText Node-based Editor
+# Open-source Branching Node-based Dialogue Editor
 
 ![corkboard](https://github.com/user-attachments/assets/2841c9d3-e45f-4ed4-bcfa-27806e077201)
 
