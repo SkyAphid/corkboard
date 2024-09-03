@@ -1,8 +1,8 @@
-# vueflow-editor
+# Corkboard - Branching Dialogue & General-use Node Editor
+WIP
 
-This template should help get you started developing with Vue 3 in Vite.
 
-## Recommended IDE Setup
+## Recommended IDE Setup for Modification
 
 [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
 
