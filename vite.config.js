@@ -8,12 +8,19 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+
   server: {
     port: 3000
   },
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./', import.meta.url))
     }
-  }
+  },
+
+  build: {
+    chunkSizeWarningLimit: 1024, // Set to a higher value (e.g., 1000 kB)
+  },
+
 })
