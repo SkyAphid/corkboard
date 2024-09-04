@@ -5,11 +5,15 @@ import vue from '@vitejs/plugin-vue'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/corkboard/",
   plugins: [
     vue(),
   ],
+  resolve: {
+    alias: [
 
-  base: '/corkboard',
+    ],
+  },
 
   server: {
     port: 3000
@@ -20,6 +24,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./', import.meta.url))
     }
   },
+
 
   build: {
     chunkSizeWarningLimit: 1024, // Set to a higher value (e.g., 1000 kB)
