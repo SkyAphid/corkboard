@@ -22,7 +22,7 @@ export const initialNodes = reactive([
   {
     id: uuidv4(),
     type: 'text-field',
-    position: { x: 500, y: 0 },
+    position: { x: 600, y: 0 },
     data: { label: 'Node 2' },
   },
 
@@ -30,7 +30,7 @@ export const initialNodes = reactive([
   {
     id: uuidv4(),
     type: 'text-area',
-    position: { x: 900, y: 0 },
+    position: { x: 1100, y: 0 },
     data: { label: 'Node 3', body: '' },
   },
 
@@ -38,7 +38,7 @@ export const initialNodes = reactive([
   {
     id: uuidv4(),
     type: 'note',
-    position: { x: 375, y: 175 },
+    position: { x: 485, y: 175 },
     data: { 
       label: 'Welcome to Corkboard!', 
       body: '<b><i>Getting Started:</i></b><ol><li>Right click the background to bring up the context menu</li><li>Double click nodes to delete and modify them</li><li>Drag attribute nodes over text area nodes to combine them</li><li>Save & load projects using the toolbar in the upper-left</li></ol>' 

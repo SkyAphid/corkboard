@@ -8,7 +8,7 @@ Uses the following APIs:
 */
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { ControlButton, Controls } from '@vue-flow/controls'
@@ -38,10 +38,13 @@ const { onInit, screenToFlowCoordinate,
   onPaneContextMenu,
   toObject, fromObject,
   getNodes, getEdges, vueFlowRef, } = useVueFlow();
-
-
+  
 //If enabled, a dialog will ask the user to confirm the deletion of elements
 let confirmDelete = true;
+
+//Delete nodes and edges
+const deleteKey = 'Delete';
+const confirmDeleteDialog = useConfirmDeleteDialog();
 
 //Node intersecting
 const panelEl = ref()
@@ -50,9 +53,17 @@ const componentUtil = useComponentUtil();
 
 //Edge renaming
 const editingEdge = ref(null);
+const edgeLabelFocused = false;
 
 let mouseX = 0;
 let mouseY = 0;
+
+//Undo/Redo Stacks
+const undoStack = [];
+const redoStack = [];
+const maxStackSize = 50;
+
+/* Functions Start */
 
 onInit((vueFlowInstance) => {
   vueFlowInstance.fitView();
@@ -60,17 +71,105 @@ onInit((vueFlowInstance) => {
 
 onConnect(addEdges)
 
-//Delete nodes and edges
-const deleteKey = 'Delete';
-const confirmDeleteDialog = useConfirmDeleteDialog();
+//Key event listener 
+onMounted(() => {
+  window.addEventListener('keydown', handleHotkeys);
+});
 
-//Node Deleting
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleHotkeys);
+});
+
+const handleHotkeys = (event) => {
+  handleUndoRedoHotkeys(event);
+}
+
+/* Undo / Redo */
+
+function pushToUndoStack() {
+  const state = JSON.stringify(toObject());
+  
+  undoStack.push(state);
+  if (undoStack.length > maxStackSize) {
+    undoStack.shift(); // Maintain stack size
+  }
+
+  clearRedoStack();
+}
+
+//Allow other classes to inject this function so that they can notify the state of changes
+provide('pushToUndoStack', pushToUndoStack);
+
+function pushToRedoStack() {
+  const state = JSON.stringify(toObject());
+
+  redoStack.push(state);
+  if (redoStack.length > maxStackSize) {
+    redoStack.shift(); // Maintain stack size
+  }
+}
+
+function clearRedoStack() {
+  redoStack.value = [];
+}
+
+function undo() {
+  console.log(undoStack.length)
+
+  if (undoStack.length > 0) {
+    pushToRedoStack();
+
+    const lastState = undoStack.pop();
+    fromObject(JSON.parse(lastState));
+
+    return true;
+  }
+
+  return false;
+}
+
+function redo() {
+  if (redoStack.length > 0) {
+    pushToUndoStack();
+
+    const nextState = redoStack.pop();
+    fromObject(JSON.parse(nextState));
+
+    return true;
+  }
+
+  return false;
+}
+
+//CTRL-Z and CTRL-Y/CTRL_SHIFT_Z to undo and redo
+const handleUndoRedoHotkeys = (event) => {
+
+  if (event.ctrlKey && event.key === 'z') {
+    if (undo()){
+      event.preventDefault();
+    }
+  } else if ((event.ctrlKey && event.key === 'y') || (event.ctrlKey && event.shiftKey && event.key === 'z')) {
+    if (redo()){
+      event.preventDefault();
+    }
+  }
+
+}
+
+/* onNodesChange/onEdgesChange - allow for deleting/editing and recording program states */
+
+//Node deletion & state recording
 onNodesChange(async (changes) => {
+
+
+  //Deleting Nodes
   const nextChanges = []
+
   for (const change of changes) {
     if (change.type === 'remove') {
 
       if (await canDelete(change)) {
+        pushToUndoStack();
         componentUtil.deleteComponents(getNodes, change.id);
         nextChanges.push(change)
       }
@@ -83,17 +182,21 @@ onNodesChange(async (changes) => {
   applyNodeChanges(nextChanges)
 })
 
-//Edge Deleting
+//Edge Deleting & state recording
 onEdgesChange(async (changes) => {
+
+  //Editing & Deleting Edges
   const nextChanges = []
 
   for (const change of changes) {
     if (change.type === 'select') {
+      pushToUndoStack(JSON.stringify(toObject()));
       endEdgeEditing();
     }
 
     if (change.type === 'remove') {
       if (await canDelete(change)) {
+        pushToUndoStack(JSON.stringify(toObject()));
         nextChanges.push(change)
       }
     } else {
@@ -395,9 +498,9 @@ async function onLoad() {
 
     <!-- Toolbar -->
     <Controls position="top-left">
-      
-      <ControlButton title="Reset to New Project" @click="onReset">
-        <Icon name="reset" />
+
+      <ControlButton title="New Project" @click="onReset">
+        <Icon name="new-file" />
       </ControlButton>
 
       <ControlButton title="Save Project" @click="onSave">
@@ -418,8 +521,7 @@ async function onLoad() {
 
   <!-- Label Renaming Dialog -->
   <div v-if="editingEdge" class="label-renaming-field">
-    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @keydown.enter="endEdgeEditing"
-      @keydown.escape="endEdgeEditing" />
+    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @focusout="endEdgeEditing" @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
   </div>
 
 </template>

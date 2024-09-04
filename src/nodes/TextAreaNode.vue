@@ -37,7 +37,7 @@ watch(components, (newComponents) => {
   }
 }, { deep: true });
 
-// Optionally, you might want to watch for changes in textAreaNodeProps.data.components as well
+//Watch this node's data and push changes to the undoStack, and also watch for changes in components
 watch(() => textAreaNodeProps.data.components, (newComponents) => {
   components.value = newComponents || [];
 }, { deep: true });

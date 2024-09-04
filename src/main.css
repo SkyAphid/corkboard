@@ -1,8 +1,8 @@
 /* import the necessary styles for Vue Flow to work */
 @import '@vue-flow/core/dist/style.css';
 
-/* import the default theme, this is optional but generally recommended */
-@import '@vue-flow/core/dist/theme-default.css';
+/* import the default theme, this is optional but generally recommended 
+@import '@vue-flow/core/dist/theme-default.css';*/
 
 /* import themeing for controls and node-resizing*/
 @import './css/controls.css';
@@ -23,6 +23,12 @@
   color: #2c3e50;
 }
 
+/* Edge Labels */ 
+
+.vue-flow__edge-labels {
+  font-size: 1.0em;
+}
+
 /* Node Defaults */
 
 .node-background {
@@ -34,10 +40,12 @@
   border-radius:0px;
 }
 
+/* If intersecting a node, it's settings can be adjusted while doing so */
 /*.intersecting {
   background-color:#ec4899;
 }*/
 
+/* Quill & Textfields/areas */
 .content-wrapper {
   display: flex;
   flex-direction: column;
@@ -78,12 +86,14 @@ input:focus {
   align-items: left;
 }
 
-/* */
+/* Minimap */
 
 .vue-flow__minimap {
   transform: scale(75%);
   transform-origin: bottom right;
 }
+
+/* Handles */
 
 .vue-flow__handle {
   height:50%;
@@ -91,6 +101,8 @@ input:focus {
   background:#3367d9;
   border-radius:8px
 }
+
+/* Node Settings */
 
 .vue-flow__node-value {
   display:flex;
