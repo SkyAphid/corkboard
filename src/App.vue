@@ -420,6 +420,8 @@ async function onReset() {
     confirmDelete = false;
     removeNodes(getNodes.value);
 
+    vueFlowInstance.fitView();
+
   }
 
 }
@@ -455,6 +457,8 @@ async function onLoad() {
     const contents = await file.text();
     const loadedState = JSON.parse(contents);
     fromObject(loadedState);
+
+    vueFlowInstance.fitView();
 
   } catch (error) {
     console.error('Failed to open file:', error);
