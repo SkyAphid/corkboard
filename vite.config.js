@@ -9,6 +9,8 @@ export default defineConfig({
     vue(),
   ],
 
+  base: '/corkboard',
+
   server: {
     port: 3000
   },

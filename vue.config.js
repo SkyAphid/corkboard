@@ -1,3 +1,1 @@
-module.exports = {
-    publicPath: process.env.NODE_ENV === 'production' ? '/corkboard/' : '/'
-};
+export const publicPath = process.env.NODE_ENV === 'production' ? '/corkboard/' : '/';
