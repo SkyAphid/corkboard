@@ -41,5 +41,5 @@ Corkboard uses the following libraries:
 
 1. [VueFlow](https://vueflow.dev/)
 2. [VueQuill](https://vueup.github.io/vue-quill/) (may be replaced soon due to deprecated parts and a lack of support)
-3. [Vue3 Context Menu]((https://www.npmjs.com/package/@imengyu/vue3-context-menu))
+3. [Vue3 Context Menu](https://www.npmjs.com/package/@imengyu/vue3-context-menu)
 4. UUIDv4
