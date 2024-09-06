@@ -6,8 +6,10 @@
 
 [![corkboard](https://github.com/user-attachments/assets/2841c9d3-e45f-4ed4-bcfa-27806e077201)](https://skyaphid.github.io/corkboard)
 
+<h3 align="center"><b>Click image or logo to open Corkboard in your browser</b></h3>
+
 ## Features
-- **[Runs in your browser:](https://skyaphid.github.io/corkboard)** Corkboard runs directly in your browser and can be launced from this git page by click one of the images above
+- **[Run it now in your browser:](https://skyaphid.github.io/corkboard)** Corkboard runs directly in your browser and can be launced from this git page by click one of the images above
 - **Highly Flexible:** All nodes are built with freedom of use in mind. No node performs a specific task, and the user is allowed to determine how they're used in their specific implementation.
 - **Exports/Imports easy-to-parse JSON files:** Corkboard projects have simple structures, allowing for easy implementations into any engine/project you want
 - E**asy to extend:** downloading the source and making a new node type is as easy as just copy and pasting one of the existing ones and adding the new functionality to its script and template sections!
