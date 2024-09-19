@@ -38,7 +38,7 @@ const { onInit, screenToFlowCoordinate,
   onPaneContextMenu,
   toObject, fromObject,
   getNodes, getEdges, vueFlowRef, } = useVueFlow();
-  
+
 //If enabled, a dialog will ask the user to confirm the deletion of elements
 let confirmDelete = true;
 
@@ -88,7 +88,7 @@ const handleHotkeys = (event) => {
 
 function pushToUndoStack() {
   const state = JSON.stringify(toObject());
-  
+
   undoStack.push(state);
   if (undoStack.length > maxStackSize) {
     undoStack.shift(); // Maintain stack size
@@ -145,11 +145,11 @@ function redo() {
 const handleUndoRedoHotkeys = (event) => {
 
   if (event.ctrlKey && event.key === 'z') {
-    if (undo()){
+    if (undo()) {
       event.preventDefault();
     }
   } else if ((event.ctrlKey && event.key === 'y') || (event.ctrlKey && event.shiftKey && event.key === 'z')) {
-    if (redo()){
+    if (redo()) {
       event.preventDefault();
     }
   }
@@ -378,7 +378,10 @@ onNodeDrag(({ node: draggedNode }) => {
   for (const node of nodes.value) {
     const isIntersecting = intersectionIds.includes(node.id)
 
+
+
     if (draggedNode == node) {
+      console.log("Node " + node.id);
       continue;
     }
 
@@ -458,8 +461,6 @@ async function onLoad() {
     const loadedState = JSON.parse(contents);
     fromObject(loadedState);
 
-    vueFlowInstance.fitView();
-
   } catch (error) {
     console.error('Failed to open file:', error);
   }
@@ -525,7 +526,8 @@ async function onLoad() {
 
   <!-- Label Renaming Dialog -->
   <div v-if="editingEdge" class="label-renaming-field">
-    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @focusout="endEdgeEditing" @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
+    <input :id="'label-editor'" type="text" v-model="editingEdge.label" @focusout="endEdgeEditing"
+      @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
   </div>
 
 </template>

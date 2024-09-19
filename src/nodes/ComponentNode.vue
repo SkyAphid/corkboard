@@ -3,7 +3,7 @@ Component nodes are designed to hold a label and attributes that can help furthe
 and be reused for consistency.
 */
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { NodeResizer } from '@vue-flow/node-resizer'
 
 const componentNodeProps = defineProps(['id', 'data']);
@@ -11,33 +11,74 @@ const componentNodeProps = defineProps(['id', 'data']);
 // Initialize attributes as a reactive reference
 const attributes = ref(componentNodeProps.data.attributes || []);
 
-// Watch for changes in the attributes and update componentNodeProps
+// Function to calculate text width dynamically
+const calculateTextWidth = (text, font = '2.0em JetBrains Mono') => {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = font;
+  return context.measureText(text).width;
+};
+
+// Define refs for input widths and label width
+const inputWidths = ref([]);
+const labelWidth = ref(0); // Track label width
+
+const MIN_WIDTH = 200; // Set a minimum width for both label and attribute inputs
+
+// Set default widths on mounted
+onMounted(() => {
+
+  // Set initial label width
+  labelWidth.value = Math.max(calculateTextWidth(componentNodeProps.data.label || '') + 20, MIN_WIDTH);
+  
+  // Set initial widths for attributes
+  attributes.value.forEach((attr, index) => {
+    inputWidths.value[index] = Math.max(calculateTextWidth(attr) + 20, MIN_WIDTH); // Add some padding
+  });
+});
+
+// Watch for changes in the attributes, adjust widths, and update componentNodeProps
 watch(attributes, (newAttrs) => {
+  newAttrs.forEach((attr, index) => {
+    inputWidths.value[index] = Math.max(calculateTextWidth(attr) + 20, MIN_WIDTH); // Update width with some padding
+  });
+
   componentNodeProps.data.attributes = newAttrs;
+
 }, { deep: true });
+
+// Watch changes in label and adjust width
+watch(() => componentNodeProps.data.label, (newLabel) => {
+  labelWidth.value = Math.max(calculateTextWidth(newLabel || '') + 20, MIN_WIDTH); // Update label width
+});
 
 </script>
 
 <template>
-
-  <NodeResizer min-width="200" min-height="50" />
-
+  
   <!-- Sets up the design of the button-->
-  <div class="node-background display: flex">
-
+  <div class="node-background node-border display: flex">
     <div class="content-wrapper">
+
       <!-- Label -->
-      <input :id="`${id}-text-field`" v-model="componentNodeProps.data.label"
-        placeholder="Write component label here..." class="nodrag text-field-node vue-flow__node-value" />
+      <input :id="`${id}-text-field`" 
+             v-model="componentNodeProps.data.label"
+             :style="{ width: `${labelWidth}px` }" 
+             placeholder="Write component label here..." 
+             class="nodrag text-field-node vue-flow__node-value" />
 
       <!-- Render attributes if available -->
       <div class="attributes-list">
         <div v-for="(attribute, index) in attributes" :key="index" class="attribute-item">
-          <input :id="`${id}-attribute-${index}`" v-model="attributes[index]" placeholder="Write attribute here..." class="nodrag text-field-node vue-flow__node-value" />
+          <input :id="`${id}-attribute-${index}`"
+                 v-model="attributes[index]"
+                 :style="{ width: `${inputWidths[index]}px` }"
+                 placeholder="Write attribute here..." class="nodrag text-field-node vue-flow__node-value" />
         </div>
-        <!-- Button to add a new attribute -->
-        <button @click="attributes.push('')" class="add-attribute-button">Add Attribute</button>
       </div>
+
+      <!-- Button to add a new attribute -->
+      <button @click="attributes.push('')" class="add-attribute-button">Add Attribute</button>
 
       <!-- <span class="tooltiptext">Drag over nodes to add components.</span> -->
 
@@ -49,6 +90,10 @@ watch(attributes, (newAttrs) => {
 <style scoped>
 .tooltip {
   position: relative;
+}
+
+.node-border {
+  border: 1px solid #ec4899;
 }
 
 .tooltip .tooltiptext {

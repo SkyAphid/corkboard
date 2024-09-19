@@ -1,8 +1,13 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useVueFlow } from '@vue-flow/core';
 import { Handle, Position } from '@vue-flow/core';
 import { NodeResizer } from '@vue-flow/node-resizer';
+import { useComponentUtil } from './ComponentUtil.js'
+
+const { getNodes } = useVueFlow();
+
+const componentUtil = useComponentUtil();
 
 // Setup properties
 const textAreaNodeProps = defineProps(['id', 'data']);
@@ -42,6 +47,18 @@ watch(() => textAreaNodeProps.data.components, (newComponents) => {
   components.value = newComponents || [];
 }, { deep: true });
 
+//Re-connect components on load
+onMounted(() => {
+
+  if (textAreaNodeProps.data.components) {
+    for (const component of textAreaNodeProps.data.components) {
+      const node = findNode(component);
+      componentNodes.value.push(node);
+    }
+  }
+
+});
+
 </script>
 
 <template>
@@ -65,7 +82,8 @@ watch(() => textAreaNodeProps.data.components, (newComponents) => {
       <!-- Render components if available -->
       <div v-if="componentNodes && componentNodes.length > 0" class="components-list">
         <div v-for="(component, index) in componentNodes" :key="index" class="component-item">
-          <label :for="`${id}-component-${index}`">{{ component.data.label ? component.data.label : component.id }}</label>
+          <label :for="`${id}-component-${index}`">{{ component.data.label ? component.data.label : component.id
+            }}</label>
         </div>
       </div>
 
