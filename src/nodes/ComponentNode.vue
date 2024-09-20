@@ -11,7 +11,7 @@ const componentNodeProps = defineProps(['id', 'data']);
 const attributes = ref(componentNodeProps.data.attributes || []);
 
 // Function to calculate text width dynamically
-const calculateTextWidth = (text, font = '1.75em JetBrains Mono') => {
+const calculateTextWidth = (text, font = '2.0em JetBrains Mono') => {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   context.font = font;
