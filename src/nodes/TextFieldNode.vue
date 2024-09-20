@@ -11,7 +11,7 @@ const textFieldNodeProps = defineProps(['id', 'data'])
 <NodeResizer min-width="220" min-height="50" max-height="50"/>
 
   <!-- Sets up the design of the button-->
-  <div class="node-background">
+  <div class="node-background" :class="{'starting-node-border': textFieldNodeProps.data.isStartingNode}">
     
     <!-- Records the string input from the user and transfer it into the label-->
     <input :id="`${id}-text-field`" v-model="textFieldNodeProps.data.label" placeholder="Write label here..." class="nodrag text-field-node vue-flow__node-value" />

@@ -4,7 +4,6 @@ and be reused for consistency.
 */
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { NodeResizer } from '@vue-flow/node-resizer'
 
 const componentNodeProps = defineProps(['id', 'data']);
 
@@ -20,10 +19,10 @@ const calculateTextWidth = (text, font = '1.75em JetBrains Mono') => {
 };
 
 // Define refs for input widths and label width
-const inputWidths = ref([]);
+const inputWidths = ref([]);  
 const labelWidth = ref(0); // Track label width
 
-const MIN_WIDTH = 200; // Set a minimum width for both label and attribute inputs
+const MIN_WIDTH = 250; // Set a minimum width for both label and attribute inputs
 
 // Set default widths on mounted
 onMounted(() => {
@@ -67,6 +66,8 @@ watch(() => componentNodeProps.data.label, (newLabel) => {
              placeholder="Write component label here..." 
              class="nodrag text-field-node vue-flow__node-value" />
 
+      <hr class="dashed">
+
       <!-- Render attributes if available -->
       <div class="attributes-list">
         <div v-for="(attribute, index) in attributes" :key="index" class="attribute-item">
@@ -80,41 +81,21 @@ watch(() => componentNodeProps.data.label, (newLabel) => {
       <!-- Button to add a new attribute -->
       <button @click="attributes.push('')" class="add-attribute-button">Add Attribute</button>
 
-      <!-- <span class="tooltiptext">Drag over nodes to add components.</span> -->
-
     </div>
   </div>
 
 </template>
 
 <style scoped>
-.tooltip {
-  position: relative;
-}
 
 .node-border {
   border: 1px solid #ec4899;
 }
 
-.tooltip .tooltiptext {
-  visibility: hidden;
+hr.dashed {
+  border-top: 1px solid #ccc;
   width: 100%;
-  background-color: #fff;
-  box-shadow: 0 0 0 2px #3367d9;
-  border-radius: 10px;
-  color: black;
-  align-self: center;
-  text-align: center;
-  padding: 10px 10px;
-  bottom: 125%;
-  /* Position above the text */
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.tooltip:hover .tooltiptext {
-  visibility: visible;
-  opacity: 1;
+  margin: 10px 0;
 }
 
 /* Add styles for the attributes list and input fields */

@@ -5,9 +5,7 @@ import { Handle, Position } from '@vue-flow/core';
 import { NodeResizer } from '@vue-flow/node-resizer';
 import { useComponentUtil } from './ComponentUtil.js'
 
-const { getNodes } = useVueFlow();
 
-const componentUtil = useComponentUtil();
 
 // Setup properties
 const textAreaNodeProps = defineProps(['id', 'data']);
@@ -66,7 +64,7 @@ onMounted(() => {
   <NodeResizer min-width="300" min-height="300" />
 
   <!-- Sets up the design of the button-->
-  <div class="node-background">
+  <div class="node-background" :class="{'starting-node-border': textAreaNodeProps.data.isStartingNode}">
 
     <div class="content-wrapper">
 
@@ -99,6 +97,7 @@ onMounted(() => {
 
 
 <style scoped>
+
 .intersecting {
   background: #f15a16
 }

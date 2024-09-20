@@ -8,7 +8,7 @@ Uses the following APIs:
 */
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount, provide } from 'vue'
 import { useVueFlow, VueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { ControlButton, Controls } from '@vue-flow/controls'
@@ -84,6 +84,22 @@ const handleHotkeys = (event) => {
   handleUndoRedoHotkeys(event);
 }
 
+/* Start node */
+
+const startNode = ref(null);
+
+watch(startNode, () => {
+
+  for (const node of getNodes.value) {
+    if (node == startNode.value) {
+      node.data.isStartingNode = true;
+    } else {
+      delete node.data.isStartingNode;
+    }
+  }
+
+});
+
 /* Undo / Redo */
 
 function pushToUndoStack() {
@@ -114,7 +130,7 @@ function clearRedoStack() {
 }
 
 function undo() {
-  console.log(undoStack.length)
+  //console.log(undoStack.length)
 
   if (undoStack.length > 0) {
     pushToRedoStack();
@@ -246,11 +262,19 @@ onNodeDoubleClick((nodeEvent) => {
     },
   ];
 
-  if (node.type == 'component') {
-    /*items.push({
-      label: "Add Attribute", onClick: () => { componentUtil.addAttribute(node) },
-    });*/
+  if (node.type == "text-area" || node.type == "text-field") {
+    if (startNode.value != node) {
+      items.push({
+        label: "Set Start Node", onClick: () => { startNode.value = node; },
+      });
+    } else {
+      items.push({
+        label: "Disable Start Node", onClick: () => { startNode.value = null; },
+      });
+    }
+  }
 
+  if (node.type == 'component') {
     let attributes = node.data.attributes;
 
     if (attributes) {
@@ -378,10 +402,8 @@ onNodeDrag(({ node: draggedNode }) => {
   for (const node of nodes.value) {
     const isIntersecting = intersectionIds.includes(node.id)
 
-
-
     if (draggedNode == node) {
-      console.log("Node " + node.id);
+      //console.log("Node " + node.id);
       continue;
     }
 

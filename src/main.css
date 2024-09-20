@@ -135,6 +135,11 @@ input:focus {
   background-color:#3367d9
 }
 
+.starting-node-border {
+  box-shadow:0 0 0 3px #ec4899;
+  transition:box-shadow .2s
+}
+
 /* Label Renaming */
 
 .label-renaming-field {
