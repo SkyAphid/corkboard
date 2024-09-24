@@ -12,8 +12,12 @@
 - **[Run it now in your browser:](https://skyaphid.github.io/corkboard)** Corkboard runs directly in your browser and can be launced from this git page by click one of the images above
 - **Highly Flexible:** All nodes are built with freedom of use in mind. No node performs a specific task, and the user is allowed to determine how they're used in their specific implementation.
 - **Exports/Imports easy-to-parse JSON files:** Corkboard projects have simple structures, allowing for easy implementations into any engine/project you want
-- E**asy to extend:** downloading the source and making a new node type is as easy as just copy and pasting one of the existing ones and adding the new functionality to its script and template sections!
+- **Easy to extend:** downloading the source and making a new node type is as easy as just copy and pasting one of the existing ones and adding the new functionality to its script and template sections!
 - **Completely free and open source!** Corkboard comes with all of the essential features found in most dialogue editors with none of the fluff, entirely for free!
+- **Includes an example of loading its JSON exports!** JCorkboard is a JSON importer in Java that not only shows how to easily loading Corkboard projects into your program, but also acts as a library you can use!
+
+## [Grab JCorkboard here!](https://github.com/SkyAphid/jcorkboard/)
+Use JCorkboard to easily integrate Corkboard into your java-based projects or learn how to import JSON Corkboard projects into your own desired language!
 
 ## Recommended IDE Setup for Modification
 
