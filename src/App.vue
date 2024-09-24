@@ -263,7 +263,7 @@ onNodeDoubleClick((nodeEvent) => {
         removeNodes(node.id);
 
         let edges = getEdges;
-        let edgesToRemove;
+        let edgesToRemove = [];
 
         for (const edge of edges.value){
           if (edge.source == node.id || edge.target == node.id){
