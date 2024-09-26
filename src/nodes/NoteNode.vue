@@ -2,7 +2,7 @@
 
 import { NodeResizer } from '@vue-flow/node-resizer'
 
-const noteNodeProps = defineProps(['id', 'data'])
+const nodeProps = defineProps(['id', 'data'])
 
 </script>
 
@@ -16,10 +16,10 @@ const noteNodeProps = defineProps(['id', 'data'])
     <div class="content-wrapper">
 
       <!--Label field-->
-      <input :id="`${id}-label-field`" v-model="noteNodeProps.data.label" placeholder="Write label here..." class="nodrag text-field-node vue-flow__node-value" />
+      <input :id="`${id}-label-field`" v-model="nodeProps.data.label" placeholder="Write label here..." class="nodrag text-field-node vue-flow__node-value" />
 
       <!-- Rich Text Quill Editor -->
-      <QuillEditor :id="`${id}-note-area`" v-model:content="noteNodeProps.data.body" contentType="html" placeholder="Write note here..." theme="snow" class="nodrag"/>
+      <QuillEditor :id="`${id}-note-area`" v-model:content="nodeProps.data.body" contentType="html" placeholder="Write note here..." theme="snow" class="nodrag"/>
 
     </div>
 

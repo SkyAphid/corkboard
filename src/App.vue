@@ -14,15 +14,13 @@ import { Background } from '@vue-flow/background'
 import { ControlButton, Controls } from '@vue-flow/controls'
 import { initialEdges, initialNodes } from './initial-elements.js'
 
-import { useConfirmDeleteDialog } from './components/DialogConfirmDeleteUse.js'
-import DialogConfirmDelete from './components/DialogConfirmDelete.vue'
-
-import ResizableNode from './nodes/ResizableNode.vue'
 import TextFieldNode from './nodes/TextFieldNode.vue'
 import TextAreaNode from './nodes/TextAreaNode.vue'
 import ComponentNode from './nodes/ComponentNode.vue'
-import { useComponentUtil } from './nodes/ComponentUtil.js'
+import JumperNode from './nodes/JumperNode.vue'
 import NoteNode from './nodes/NoteNode.vue'
+
+import { useComponentUtil } from './nodes/ComponentUtil.js'
 
 import ContextMenu from '@imengyu/vue3-context-menu'
 
@@ -44,7 +42,6 @@ let confirmDelete = true;
 
 //Delete nodes and edges
 const deleteKey = 'Delete';
-const confirmDeleteDialog = useConfirmDeleteDialog();
 
 //Node intersecting
 const panelEl = ref()
@@ -53,7 +50,6 @@ const componentUtil = useComponentUtil();
 
 //Edge renaming
 const editingEdge = ref(null);
-const edgeLabelFocused = false;
 
 let mouseX = 0;
 let mouseY = 0;
@@ -184,17 +180,15 @@ onNodesChange(async (changes) => {
   for (const change of changes) {
     if (change.type === 'remove') {
 
-      if (await canDelete(change)) {
         pushToUndoStack();
         componentUtil.deleteComponents(getNodes, change.id);
-        nextChanges.push(change)
-      }
+        nextChanges.push(change);
+
     } else {
       nextChanges.push(change)
     }
   }
 
-  confirmDelete = true;
   applyNodeChanges(nextChanges)
 })
 
@@ -204,41 +198,55 @@ onEdgesChange(async (changes) => {
   //Editing & Deleting Edges
   const nextChanges = []
 
+  pushToUndoStack(JSON.stringify(toObject()));
+
   for (const change of changes) {
     if (change.type === 'select') {
-      pushToUndoStack(JSON.stringify(toObject()));
       endEdgeEditing();
     }
 
     if (change.type === 'remove') {
-      if (await canDelete(change)) {
         pushToUndoStack(JSON.stringify(toObject()));
         nextChanges.push(change)
-      }
+
     } else {
       nextChanges.push(change)
     }
   }
 
-  confirmDelete = true;
   applyEdgeChanges(nextChanges)
 })
 
-async function canDelete(change) {
-  if (confirmDelete) {
-    //await causes the isConfirmed const to wait on a response from the dialog.confirmDefault function
-    return await confirmDeleteDialog.confirmDefault(change.id);
-  }
+//Edge context
+onEdgeDoubleClick((edgeMouseEvent) => {
 
-  return true;
-}
+  let event = edgeMouseEvent.event;
+  let edge = edgeMouseEvent.edge;
 
-//Edge Renaming
-onEdgeDoubleClick(({ mouseEvent, edge }) => {
-  editingEdge.value = edge;
-  mouseX = edge.sourceX;
-  mouseY = edge.sourceY;
-  //console.log('edge double clicked', edge, edge.label, mouseX, mouseY);
+  event.preventDefault();
+
+  mouseX = edgeMouseEvent.sourceX;
+  mouseY = edgeMouseEvent.sourceY;
+
+  let items = [
+    {
+      label: "Delete Edge", onClick: () => {
+        removeEdges(edge.id);
+      },
+    },
+    {
+      label: "Set Label", onClick: () => {
+        editingEdge.value = edge;
+      },
+    },
+  ];
+
+  ContextMenu.showContextMenu({
+    x: event.x,
+    y: event.y,
+    items
+  })
+
 });
 
 const endEdgeEditing = () => {
@@ -247,14 +255,14 @@ const endEdgeEditing = () => {
   }
 }
 
-/* Context Menus */
+/* Node Context Menus */
 
-onNodeDoubleClick((nodeEvent) => {
+onNodeDoubleClick((nodeMouseEvent) => {
 
-  let pointerEvent = nodeEvent.event;
-  let node = nodeEvent.node;
+  let event = nodeMouseEvent.event;
+  let node = nodeMouseEvent.node;
 
-  pointerEvent.preventDefault();
+  event.preventDefault();
 
   let items = [
     {
@@ -323,8 +331,8 @@ onNodeDoubleClick((nodeEvent) => {
   }
 
   ContextMenu.showContextMenu({
-    x: pointerEvent.x,
-    y: pointerEvent.y,
+    x: event.x,
+    y: event.y,
     items
   })
 
@@ -334,16 +342,14 @@ onNodeDoubleClick((nodeEvent) => {
 
 onEdgeContextMenu((edgeEvent) => {
 
-  let pointerEvent = edgeEvent.event;
+  let event = edgeEvent.event;
   let edge = edgeEvent.edge;
 
-  //pointerEvent.preventDefault();
-
-  pointerEvent.preventDefault();
+  event.preventDefault();
 
   ContextMenu.showContextMenu({
-    x: pointerEvent.x,
-    y: pointerEvent.y,
+    x: event.x,
+    y: event.y,
     items: [
       {
         label: "Delete Connection", onClick: () => { removeEdges(edge.id); },
@@ -353,6 +359,7 @@ onEdgeContextMenu((edgeEvent) => {
 
 });
 
+/* Show context menu for creating nodes */
 onPaneContextMenu((event) => {
   event.preventDefault();
 
@@ -366,6 +373,7 @@ onPaneContextMenu((event) => {
           { label: "Text Area Node", onClick: () => { createNewNode(event, "text-area"); } },
           { label: "Text Field Node", onClick: () => { createNewNode(event, "text-field"); } },
           { label: "Component Node", onClick: () => { createNewNode(event, "component"); } },
+          { label: "Jumper Node", onClick: () => { createNewNode(event, "jumper"); } },
           { label: "Note", onClick: () => { createNewNode(event, "note"); } },
         ]
       },
@@ -405,7 +413,7 @@ function createNewNode(event, type) {
   addNodes(newNode);
 };
 
-/* Node Intersecting */
+/* Node/Component Intersecting */
 
 onNodeDrag(({ node: draggedNode }) => {
   const nodes = getNodes;
@@ -508,35 +516,33 @@ async function onLoad() {
 
 <template>
 
-  <VueFlow :nodes="initialNodes" :edges="initialEdges" :apply-default="false" :delete-key-code=deleteKey
+  <VueFlow :nodes="initialNodes" :edges="initialEdges" :delete-key-code=deleteKey
     :default-viewport="{ zoom: 1.5 }" :min-zoom="0.2" :max-zoom="4">
 
     <!-- Creates Resizable Nodes with the ID 'resizable' (#node- tells us that its a node, the other half is the ID), 
      Then we copy the data required into the properties-->
-    <template #node-resizable="resizableNodeProps">
-      <ResizableNode :data="resizableNodeProps.data" />
+    <template #node-text-field="nodeProps">
+      <TextFieldNode :id="nodeProps.id" :data="nodeProps.data" />
     </template>
 
-    <template #node-text-field="textFieldNodeProps">
-      <TextFieldNode :id="textFieldNodeProps.id" :data="textFieldNodeProps.data" />
+    <template #node-text-area="nodeProps">
+      <TextAreaNode :id="nodeProps.id" :data="nodeProps.data" />
     </template>
 
-    <template #node-text-area="textAreaNodeProps">
-      <TextAreaNode :id="textAreaNodeProps.id" :data="textAreaNodeProps.data" />
+    <template #node-component="nodeProps">
+      <ComponentNode :id="nodeProps.id" :data="nodeProps.data" />
     </template>
 
-    <template #node-component="componentNodeProps">
-      <ComponentNode :id="componentNodeProps.id" :data="componentNodeProps.data" />
+    <template #node-jumper="nodeProps">
+      <JumperNode :id="nodeProps.id" :data="nodeProps.data" />
     </template>
 
-    <template #node-note="noteNodeProps">
-      <NoteNode :id="noteNodeProps.id" :data="noteNodeProps.data" />
+    <template #node-note="nodeProps">
+      <NoteNode :id="nodeProps.id" :data="nodeProps.data" />
     </template>
 
     <!-- Background & Pattern -->
     <Background pattern-color="#aaa" :gap="16" />
-
-    <DialogConfirmDelete />
 
     <!-- Toolbar -->
     <Controls position="top-left">
@@ -562,7 +568,7 @@ async function onLoad() {
   </VueFlow>
 
   <!-- Label Renaming Dialog -->
-  <div v-if="editingEdge" class="label-renaming-field">
+  <div v-if="editingEdge" class="label-renaming-field" @keydown.escape="endEdgeEditing" tabindex="0">
     <input :id="'label-editor'" type="text" v-model="editingEdge.label" @focusout="endEdgeEditing"
       @keydown.enter="endEdgeEditing" @keydown.escape="endEdgeEditing" />
   </div>

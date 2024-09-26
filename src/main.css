@@ -140,6 +140,11 @@ input:focus {
   transition:box-shadow .2s
 }
 
+.jumping-node-border {
+  box-shadow:0 0 0 1px #ec4899;
+  transition:box-shadow .2s
+}
+
 /* Label Renaming */
 
 .label-renaming-field {

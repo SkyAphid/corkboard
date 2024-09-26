@@ -3,15 +3,12 @@ import { ref, watch, onMounted } from 'vue';
 import { useVueFlow } from '@vue-flow/core';
 import { Handle, Position } from '@vue-flow/core';
 import { NodeResizer } from '@vue-flow/node-resizer';
-import { useComponentUtil } from './ComponentUtil.js'
-
-
 
 // Setup properties
-const textAreaNodeProps = defineProps(['id', 'data']);
+const nodeProps = defineProps(['id', 'data']);
 
 // Initialize components as a reactive reference
-const components = ref(textAreaNodeProps.data.components || []);
+const components = ref(nodeProps.data.components || []);
 
 // Initialize componentNodes as a reactive reference
 const componentNodes = ref([]);
@@ -41,15 +38,15 @@ watch(components, (newComponents) => {
 }, { deep: true });
 
 //Watch this node's data and push changes to the undoStack, and also watch for changes in components
-watch(() => textAreaNodeProps.data.components, (newComponents) => {
+watch(() => nodeProps.data.components, (newComponents) => {
   components.value = newComponents || [];
 }, { deep: true });
 
 //Re-connect components on load
 onMounted(() => {
 
-  if (textAreaNodeProps.data.components) {
-    for (const component of textAreaNodeProps.data.components) {
+  if (nodeProps.data.components) {
+    for (const component of nodeProps.data.components) {
       const node = findNode(component);
       componentNodes.value.push(node);
     }
@@ -64,16 +61,16 @@ onMounted(() => {
   <NodeResizer min-width="300" min-height="300" />
 
   <!-- Sets up the design of the button-->
-  <div class="node-background" :class="{'starting-node-border': textAreaNodeProps.data.isStartingNode}">
+  <div class="node-background" :class="{ 'starting-node-border': nodeProps.data.isStartingNode }">
 
     <div class="content-wrapper">
 
       <!--Label field-->
-      <input :id="`${id}-text-field`" v-model="textAreaNodeProps.data.label" placeholder="Write label here..."
+      <input :id="`${id}-text-field`" v-model="nodeProps.data.label" placeholder="Write label here..."
         class="nodrag text-field-node vue-flow__node-value" />
 
       <!-- Rich Text Quill Editor -->
-      <QuillEditor :id="`${id}-text-area`" v-model:content="textAreaNodeProps.data.body" contentType="html"
+      <QuillEditor :id="`${id}-text-area`" v-model:content="nodeProps.data.body" contentType="html"
         placeholder="Write text here..." theme="snow" :toolbar="['bold', 'italic', 'underline', 'link', 'code']"
         class="nodrag" />
 
@@ -97,7 +94,6 @@ onMounted(() => {
 
 
 <style scoped>
-
 .intersecting {
   background: #f15a16
 }
@@ -117,4 +113,5 @@ onMounted(() => {
   border: 1px solid #ccc;
   border-radius: 3px;
 }
+
 </style>

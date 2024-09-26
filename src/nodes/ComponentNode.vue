@@ -5,10 +5,10 @@ and be reused for consistency.
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 
-const componentNodeProps = defineProps(['id', 'data']);
+const nodeProps = defineProps(['id', 'data']);
 
 // Initialize attributes as a reactive reference
-const attributes = ref(componentNodeProps.data.attributes || []);
+const attributes = ref(nodeProps.data.attributes || []);
 
 // Function to calculate text width dynamically
 const calculateTextWidth = (text, font = '2.0em JetBrains Mono') => {
@@ -28,7 +28,7 @@ const MIN_WIDTH = 250; // Set a minimum width for both label and attribute input
 onMounted(() => {
 
   // Set initial label width
-  labelWidth.value = Math.max(calculateTextWidth(componentNodeProps.data.label || '') + 20, MIN_WIDTH);
+  labelWidth.value = Math.max(calculateTextWidth(nodeProps.data.label || '') + 20, MIN_WIDTH);
   
   // Set initial widths for attributes
   attributes.value.forEach((attr, index) => {
@@ -42,12 +42,12 @@ watch(attributes, (newAttrs) => {
     inputWidths.value[index] = Math.max(calculateTextWidth(attr) + 20, MIN_WIDTH); // Update width with some padding
   });
 
-  componentNodeProps.data.attributes = newAttrs;
+  nodeProps.data.attributes = newAttrs;
 
 }, { deep: true });
 
 // Watch changes in label and adjust width
-watch(() => componentNodeProps.data.label, (newLabel) => {
+watch(() => nodeProps.data.label, (newLabel) => {
   labelWidth.value = Math.max(calculateTextWidth(newLabel || '') + 20, MIN_WIDTH); // Update label width
 });
 
@@ -61,7 +61,7 @@ watch(() => componentNodeProps.data.label, (newLabel) => {
 
       <!-- Label -->
       <input :id="`${id}-text-field`" 
-             v-model="componentNodeProps.data.label"
+             v-model="nodeProps.data.label"
              :style="{ width: `${labelWidth}px` }" 
              placeholder="Write component label here..." 
              class="nodrag text-field-node vue-flow__node-value" />
