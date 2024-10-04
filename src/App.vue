@@ -230,7 +230,7 @@ onEdgeDoubleClick((edgeMouseEvent) => {
 
   let items = [
     {
-      label: "Delete Edge", onClick: () => {
+      label: "Delete Connection", onClick: () => {
         removeEdges(edge.id);
       },
     },
@@ -337,25 +337,6 @@ onNodeDoubleClick((nodeMouseEvent) => {
   })
 
   //console.log(pointerEvent + " " + node.id);
-
-});
-
-onEdgeContextMenu((edgeEvent) => {
-
-  let event = edgeEvent.event;
-  let edge = edgeEvent.edge;
-
-  event.preventDefault();
-
-  ContextMenu.showContextMenu({
-    x: event.x,
-    y: event.y,
-    items: [
-      {
-        label: "Delete Connection", onClick: () => { removeEdges(edge.id); },
-      },
-    ]
-  })
 
 });
 
