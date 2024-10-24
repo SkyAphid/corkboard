@@ -16,8 +16,8 @@
 - **Completely free and open source!** Corkboard comes with all of the essential features found in most dialogue editors with none of the fluff, entirely for free!
 - **Includes an example of loading its JSON exports!** JCorkboard is a JSON importer in Java that not only shows how to easily loading Corkboard projects into your program, but also acts as a library you can use!
 
-## [Grab JCorkboard here!](https://github.com/SkyAphid/jcorkboard/)
-Use JCorkboard to easily integrate Corkboard into your java-based projects or learn how to import JSON Corkboard projects into your own desired language!
+## [JCorkboard: the java-based wrapper and API for Corkboard](https://github.com/SkyAphid/jcorkboard/)
+Use JCorkboard to easily integrate Corkboard into your java-based projects or learn how to import JSON Corkboard projects into your own desired language! [Github Page](https://github.com/SkyAphid/jcorkboard/)
 
 ## Recommended IDE Setup for Modification
 
