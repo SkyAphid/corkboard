@@ -180,9 +180,9 @@ onNodesChange(async (changes) => {
   for (const change of changes) {
     if (change.type === 'remove') {
 
-        pushToUndoStack();
-        componentUtil.deleteComponents(getNodes, change.id);
-        nextChanges.push(change);
+      pushToUndoStack();
+      componentUtil.deleteComponents(getNodes, change.id);
+      nextChanges.push(change);
 
     } else {
       nextChanges.push(change)
@@ -206,8 +206,8 @@ onEdgesChange(async (changes) => {
     }
 
     if (change.type === 'remove') {
-        pushToUndoStack(JSON.stringify(toObject()));
-        nextChanges.push(change)
+      pushToUndoStack(JSON.stringify(toObject()));
+      nextChanges.push(change)
 
     } else {
       nextChanges.push(change)
@@ -273,12 +273,12 @@ onNodeDoubleClick((nodeMouseEvent) => {
         let edges = getEdges;
         let edgesToRemove = [];
 
-        for (const edge of edges.value){
-          if (edge.source == node.id || edge.target == node.id){
+        for (const edge of edges.value) {
+          if (edge.source == node.id || edge.target == node.id) {
             edgesToRemove.push(edge);
           }
         }
-        
+
         removeEdges(edgesToRemove);
 
       },
@@ -473,7 +473,31 @@ function onSave() {
 
 };
 
-async function onLoad() {
+async function onLoad(event) {
+  const input = event.target
+  const file = input.files?.[0]
+
+  if (!file) {
+    return
+  }
+
+  try {
+    const text = await file.text()
+    const loadedState = JSON.parse(text)
+    fromObject(loadedState)
+
+  } catch (err) {
+    console.error('Failed to load JSON:', err)
+    alert("Corkboard was unable to load the selected file.")
+
+  } finally {
+    //Reset event target
+    input.value = '' 
+
+  }
+};
+
+/* async function onLoad() {
   try {
     const [fileHandle] = await window.showOpenFilePicker({
       types: [{
@@ -485,20 +509,23 @@ async function onLoad() {
     const file = await fileHandle.getFile();
     const contents = await file.text();
     const loadedState = JSON.parse(contents);
+
+
+
     fromObject(loadedState);
 
   } catch (error) {
     console.error('Failed to open file:', error);
   }
-};
+};*/
 
 </script>
 
 
 <template>
 
-  <VueFlow :nodes="initialNodes" :edges="initialEdges" :delete-key-code=deleteKey
-    :default-viewport="{ zoom: 1.5 }" :min-zoom="0.2" :max-zoom="4">
+  <VueFlow :nodes="initialNodes" :edges="initialEdges" :delete-key-code=deleteKey :default-viewport="{ zoom: 1.5 }"
+    :min-zoom="0.2" :max-zoom="4">
 
     <!-- Creates Resizable Nodes with the ID 'resizable' (#node- tells us that its a node, the other half is the ID), 
      Then we copy the data required into the properties-->
@@ -536,7 +563,7 @@ async function onLoad() {
         <Icon name="save" />
       </ControlButton>
 
-      <ControlButton title="Load Project" @click="onLoad">
+      <ControlButton title="Load Project" @click="$refs.projectImporter?.click()">
         <Icon name="load" />
       </ControlButton>
 
@@ -545,6 +572,9 @@ async function onLoad() {
       </ControlButton>
 
     </Controls>
+
+    <!-- Configure Project Import File Chooser -->
+    <input ref="projectImporter" type="file" accept=".json,application/json" style="display:none" @change="onLoad" />
 
   </VueFlow>
 
